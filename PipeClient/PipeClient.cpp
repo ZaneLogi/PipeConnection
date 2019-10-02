@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include <random>
 
 static int PACKET_MAX_SIZE = 1024;
 
@@ -182,6 +183,11 @@ private:
 
 int main()
 {
+    std::random_device rd;
+    std::default_random_engine gen = std::default_random_engine(rd());
+    std::uniform_int_distribution<int> dis(1, 0xffff);
+    auto id = dis(gen);
+
     client_connection client;
     if (client.connectToPipe() && client.startReading())
     {
@@ -197,7 +203,7 @@ int main()
             char* payload = buf + sizeof(packet_header);
             sprintf_s(payload, 128, "message '%s'\n", msg);
             packet_header* header = (packet_header*)buf;
-            header->packet_type = 0;
+            header->packet_type = id;
             header->payload_size = (uint32_t)strlen(payload);
             if (client.write(buf, sizeof(packet_header) + header->payload_size))
             {

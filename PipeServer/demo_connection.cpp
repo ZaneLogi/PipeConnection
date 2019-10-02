@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include <iostream>
 #include "demo_connection.h"
+#include "demo_server.h"
 
-demo_connection::demo_connection(void* socket) : local_server_connection_win(socket)
+demo_connection::demo_connection(void* socket, demo_server* server) :
+    local_server_connection_win(socket),
+    m_server(server)
 {
 }
 
@@ -36,6 +39,18 @@ void demo_connection::on_read_bytes(const uint8_t* data, int size)
                     out_header->packet_type = 0;
                     out_header->payload_size = (uint32_t)strlen(payload);
                     write(buf, sizeof(packet_header) + out_header->payload_size);
+
+                    auto connections = m_server->connections();
+                    for (auto c : connections)
+                    {
+                        if (c.get() != this)
+                        {
+                            sprintf_s(payload, 128, "%s", s.c_str());
+                            out_header->packet_type = 0;
+                            out_header->payload_size = (uint32_t)strlen(payload);
+                            c->write(buf, sizeof(packet_header) + out_header->payload_size);
+                        }
+                    }
                 }
 
                 // eat up the bytes consumed

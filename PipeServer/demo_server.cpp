@@ -13,7 +13,7 @@ demo_server::~demo_server(void)
 void demo_server::on_new_connection(void* socket)
 {
     // add the connection to our list
-    demo_connection_ptr connection = demo_connection_ptr(new demo_connection(socket));
+    demo_connection_ptr connection = demo_connection_ptr(new demo_connection(socket, this));
 
     std::lock_guard<std::mutex> lock(m_mutex);
     m_connections.push_back(connection);
